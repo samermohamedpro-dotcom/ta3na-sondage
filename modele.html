@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sondage TA3NA</title>
+<meta name="description" content="TA3NA, le jeu de soirée : réponds avec tes mots.">
+<meta property="og:title" content="TA3NA · Le sondage">
+<meta property="og:description" content="17 questions, 5 minutes. Réponds comme tu parles.">
+<meta name="theme-color" content="#ffc93c">
+<link rel="icon" href="data:image/svg+xml,%%ICONE_URI%%">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@800;900&family=Rubik:wght@400;500;700;800&display=swap">
+<style>
+  /* Le béton peint de l'app : une seule ambiance, claire, voulue.
+     Un écran à la fois : l'accueil, une question, le choix Hardcore, l'envoi. */
+  :root {
+    --beton: #d9d6d0;
+    --carte: #f1eee8;
+    --encre: #111111;
+    --gris: #5b574f;
+    --trait: #8a857c;
+    --jaune: #ffc93c;
+    --jaune-fonce: #946700;
+    --rose: #ff3c7a;
+    --rose-fonce: #8f0d38;
+    --vert: #25d366;
+    --vert-fonce: #128c4b;
+    --pochoir: "Big Shoulders Stencil Display", Impact, "Arial Narrow", sans-serif;
+    --texte: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--beton); color: var(--encre);
+    font-family: var(--texte); font-size: 17px; line-height: 1.45;
+    -webkit-text-size-adjust: 100%;
+  }
+  .ecran {
+    min-height: 100%; max-width: 560px; margin-inline: auto;
+    display: flex; flex-direction: column; gap: 18px;
+    padding-top: max(20px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+  }
+  .pousse { flex: 1; }
+
+  /* L'accueil */
+  .icone { width: 72px; height: 72px; border-radius: 17px; overflow: hidden; border: 3px solid var(--encre); }
+  .icone svg { display: block; width: 100%; height: 100%; }
+  .mot { font-family: var(--pochoir); font-weight: 900; font-size: 64px; line-height: .88; margin: 0; letter-spacing: .01em; }
+  .mot span { background: var(--jaune); padding: 0 .1em; }
+  .sous { font-family: var(--pochoir); font-weight: 800; font-size: 30px; line-height: 1; margin: 0; text-transform: uppercase; }
+  .chiffres { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pastille { border: 2px solid var(--encre); border-radius: 999px; padding: 5px 12px; font-size: 15px; font-weight: 700; background: var(--carte); }
+  .etapes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .etapes li { display: flex; gap: 12px; align-items: baseline; }
+  .etapes b { font-family: var(--pochoir); font-size: 26px; line-height: 1; min-width: 1.1em; }
+  .regle { margin: 0; padding: 12px 14px; border: 2px solid var(--encre); border-radius: 12px; background: var(--carte); font-size: 15px; }
+
+  /* Le haut d'une question */
+  .haut { display: flex; flex-direction: column; gap: 8px; }
+  .haut-ligne { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .retour { font: inherit; font-weight: 500; background: none; border: 0; padding: 6px 0; color: var(--gris); cursor: pointer; }
+  .barre { height: 12px; border: 2px solid var(--encre); border-radius: 999px; background: var(--carte); overflow: hidden; }
+  .barre i { display: block; height: 100%; background: var(--jaune); transition: width .25s; }
+  .hard .barre i { background: var(--rose); }
+
+  .numero { font-family: var(--pochoir); font-weight: 900; font-size: 88px; line-height: .8; margin: 6px 0 0; }
+  .hard .numero { color: var(--rose); }
+  .titre { margin: 0; font-weight: 800; font-size: 27px; line-height: 1.15; text-wrap: balance; }
+  .aide { margin: 0; color: var(--gris); }
+  .champs { display: flex; flex-direction: column; gap: 10px; }
+  .champ { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--trait); border-radius: 14px; padding: 0 0 0 14px; }
+  .champ:focus-within { border-color: var(--encre); box-shadow: 0 0 0 3px var(--jaune); }
+  .hard .champ:focus-within { box-shadow: 0 0 0 3px var(--rose); }
+  .champ span { font-family: var(--pochoir); font-weight: 900; font-size: 22px; color: var(--trait); }
+  .champ input { flex: 1; min-width: 0; font: inherit; font-size: 18px; border: 0; background: transparent; padding: 15px 14px 15px 0; color: var(--encre); outline: none; }
+
+  /* Les boutons, comme dans l'app : une marche épaisse en dessous */
+  .boutons { display: flex; flex-direction: column; gap: 10px; }
+  .bouton { display: block; width: 100%; text-align: center; text-decoration: none; cursor: pointer;
+    font: inherit; font-weight: 800; font-size: 20px; letter-spacing: .01em;
+    padding: 16px 16px 12px; border: 0; border-radius: 14px; border-bottom: 6px solid var(--jaune-fonce);
+    background: var(--jaune); color: var(--encre); }
+  .bouton:active { transform: translateY(3px); border-bottom-width: 3px; }
+  .bouton.rose { background: var(--rose); border-bottom-color: var(--rose-fonce); color: #fff; }
+  .bouton.vert { font-size: 18px; background: var(--vert); border-bottom-color: var(--vert-fonce); color: #06210f; }
+  .bouton.creux { background: var(--carte); border: 2px solid var(--encre); border-bottom-width: 6px; }
+  .lien { font: inherit; font-weight: 500; background: none; border: 0; color: var(--gris); text-decoration: underline; cursor: pointer; padding: 8px; align-self: center; }
+  .bouton:focus-visible, .lien:focus-visible, .retour:focus-visible { outline: 3px solid var(--encre); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { .barre i { transition: none; } .bouton:active { transform: none; } }
+
+  .hard-titre { font-family: var(--pochoir); font-weight: 900; font-size: 72px; line-height: .9; margin: 0; }
+  .hard-titre span { background: var(--rose); color: #fff; padding: 0 .1em; }
+  .bilan { font-family: var(--pochoir); font-weight: 900; font-size: 64px; line-height: .9; margin: 0; }
+  .etat { margin: 0; min-height: 1.4em; font-weight: 500; color: var(--vert-fonce); text-align: center; }
+  .champ-nom input { padding-left: 14px; }
+  textarea { width: 100%; min-height: 150px; font: 13px/1.4 ui-monospace, Menlo, monospace; border: 2px solid var(--trait); border-radius: 12px; padding: 10px; background: #fff; color: var(--encre); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- L'accueil -->
+<main class="ecran" id="accueil">
+  <div class="icone" aria-hidden="true">%%ICONE_SVG%%</div>
+  <h1 class="mot"><span>TA3NA</span></h1>
+  <p class="sous">Le sondage</p>
+  <p style="margin:0">On fabrique un jeu de soirée avec <strong>nos mots à nous</strong>. Les réponses que les potes donnent le plus deviennent les réponses du jeu.</p>
+  <div class="chiffres"><span class="pastille">14 questions</span><span class="pastille">+3 Hardcore</span><span class="pastille">5 min</span></div>
+  <ol class="etapes">
+    <li><b>1</b><span>Une question à la fois, <strong>3 réponses max</strong>.</span></li>
+    <li><b>2</b><span>Écris comme tu parles avec tes potes. Pas d'idée ? <strong>Passe.</strong></span></li>
+    <li><b>3</b><span>À la fin, un bouton envoie tout à Samer sur WhatsApp.</span></li>
+  </ol>
+  <p class="regle"><strong>Une seule règle :</strong> rien sur l'origine, la religion ou la couleur de peau. Ça, on ne le met pas dans le jeu.</p>
+  <div class="pousse"></div>
+  <div class="boutons">
+    <button class="bouton" id="go" type="button">C'est parti</button>
+  </div>
+</main>
+
+<!-- Une question -->
+<main class="ecran" id="question" hidden>
+  <div class="haut">
+    <div class="haut-ligne">
+      <button class="retour" id="retour" type="button">← Retour</button>
+      <span id="compteur">1 / 14</span>
+    </div>
+    <div class="barre" aria-hidden="true"><i id="barre" style="width:0"></i></div>
+  </div>
+  <p class="numero" id="numero" aria-hidden="true">1</p>
+  <h2 class="titre" id="titre"></h2>
+  <p class="aide" id="aide"></p>
+  <div class="champs">
+    <label class="champ"><span>1</span><input id="r0" type="text" maxlength="80" autocomplete="off" enterkeyhint="next" aria-label="Réponse 1"></label>
+    <label class="champ"><span>2</span><input id="r1" type="text" maxlength="80" autocomplete="off" enterkeyhint="next" aria-label="Réponse 2"></label>
+    <label class="champ"><span>3</span><input id="r2" type="text" maxlength="80" autocomplete="off" enterkeyhint="go" aria-label="Réponse 3"></label>
+  </div>
+  <div class="pousse"></div>
+  <div class="boutons">
+    <button class="bouton" id="suivant" type="button">Suivant</button>
+    <button class="lien" id="passer" type="button">Passer cette question</button>
+  </div>
+</main>
+
+<!-- Le choix Hardcore -->
+<main class="ecran hard" id="choix-hard" hidden>
+  <div class="pousse"></div>
+  <h2 class="hard-titre"><span>HARDCORE</span></h2>
+  <p style="margin:0;font-size:19px">Bien joué, les 14 sont faites. Il reste <strong>3 questions bonus</strong> pour le mode où on va loin : insultes entre potes, ce qu'on crie au city, les gros mots.</p>
+  <p class="regle">C'est optionnel. La règle tient toujours : rien sur l'origine, la religion ou la couleur de peau.</p>
+  <div class="pousse"></div>
+  <div class="boutons">
+    <button class="bouton rose" id="hard-oui" type="button">Je suis chaud</button>
+    <button class="bouton creux" id="hard-non" type="button">Non, j'envoie</button>
+  </div>
+</main>
+
+<!-- L'envoi -->
+<main class="ecran" id="fin" hidden>
+  <p class="bilan" id="bilan">C'est fini !</p>
+  <p style="margin:0" id="bilan-texte"></p>
+  <label class="champ champ-nom"><input id="prenom" type="text" maxlength="30" autocomplete="given-name" placeholder="Ton prénom ou ton pseudo" aria-label="Ton prénom ou ton pseudo"></label>
+  <div class="boutons">
+    <a class="bouton vert" id="whatsapp" href="#" target="_blank" rel="noopener">Envoyer à Samer sur WhatsApp</a>
+    <button class="bouton creux" id="copier" type="button">Copier mes réponses</button>
+  </div>
+  <p class="etat" id="etat" role="status" aria-live="polite"></p>
+  <p style="margin:0;color:var(--gris);font-size:15px">WhatsApp s'ouvre avec ton message déjà écrit : choisis Samer dans tes contacts et envoie. Rien n'est enregistré ailleurs.</p>
+  <textarea id="apercu" readonly hidden aria-label="Tes réponses"></textarea>
+  <div class="pousse"></div>
+  <button class="lien" id="revoir" type="button">Revoir mes réponses</button>
+</main>
+
+<script>
+  var QUESTIONS = [
+    { titre: "Tes excuses quand t'es en retard", aide: "Celles que tu sors vraiment." },
+    { titre: "Ce que dit ta daronne quand tu rentres tard", aide: "Ses phrases à elle, mot pour mot." },
+    { titre: "Tes excuses pour pas aller en cours ou au taf" },
+    { titre: "Comment tu dis « je te jure » ?" },
+    { titre: "Comment tu dis « l'argent » ?" },
+    { titre: "Comment tu dis « la police » ?" },
+    { titre: "Comment tu dis « une fille » ?", aide: "Ta copine, une inconnue, comme tu veux." },
+    { titre: "Comment tu dis « voler » ?" },
+    { titre: "Ce qu'on entend en bas du bâtiment" },
+    { titre: "Ce que disent tes parents quand tu joues à la console" },
+    { titre: "Ce qui te coûte le plus cher" },
+    { titre: "Ta commande au grec", aide: "Comme tu la dis au comptoir." },
+    { titre: "Un mot que tu dis tout le temps", aide: "Un que ton prof capterait pas." },
+    { titre: "La phrase qu'on sort quand on perd à la console ou au foot" },
+    { titre: "Les insultes qu'on se lance entre potes, pour rire", hard: true },
+    { titre: "Ce qu'on crie au city quand on s'énerve", hard: true },
+    { titre: "Les gros mots que tu dis le plus", hard: true }
+  ];
+  var BASE = 14, CLE = "ta3na-sondage";
+  var etat = { i: 0, reps: {}, prenom: "", hard: false };
+  try { var s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && s.reps) etat = s; } catch (e) {}
+  function garder() { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var champs = [$("r0"), $("r1"), $("r2")];
+  function montrer(id) {
+    ["accueil", "question", "choix-hard", "fin"].forEach(function (e) { $(e).hidden = e !== id; });
+    window.scrollTo(0, 0);
+  }
+  function nettoyer(t) { return String(t || "").replace(/[;\n\r|]+/g, ",").replace(/\s+/g, " ").trim(); }
+
+  function afficherQuestion() {
+    var q = QUESTIONS[etat.i], hard = !!q.hard;
+    var total = hard ? QUESTIONS.length - BASE : BASE, rang = hard ? etat.i - BASE + 1 : etat.i + 1;
+    $("question").classList.toggle("hard", hard);
+    $("compteur").textContent = (hard ? "Hardcore " : "") + rang + " / " + total;
+    $("barre").style.width = Math.round(((rang - 1) / total) * 100) + "%";
+    $("numero").textContent = rang;
+    $("titre").textContent = q.titre;
+    $("aide").textContent = q.aide || "Jusqu'à 3 réponses, écris comme tu le dis.";
+    var r = etat.reps[etat.i] || [];
+    champs.forEach(function (c, k) { c.value = r[k] || ""; });
+    $("suivant").className = "bouton" + (hard ? " rose" : "");
+    montrer("question");
+    if (window.matchMedia("(hover: hover)").matches) champs[0].focus();
+  }
+  function noter() {
+    etat.reps[etat.i] = champs.map(function (c) { return c.value; });
+    garder();
+  }
+  function avancer() {
+    noter();
+    if (etat.i === BASE - 1 && !etat.hard) { montrer("choix-hard"); return; }
+    if (etat.i >= QUESTIONS.length - 1 || (etat.i === BASE - 1 && !etat.hard)) { finir(); return; }
+    etat.i++; garder(); afficherQuestion();
+  }
+  function reculer() {
+    noter();
+    if (etat.i === 0) { montrer("accueil"); return; }
+    etat.i--; garder(); afficherQuestion();
+  }
+
+  function lignes(i) { return (etat.reps[i] || []).map(nettoyer).filter(Boolean); }
+  function message() {
+    var out = ["TA3NA - SONDAGE v1", "De : " + (nettoyer($("prenom").value) || "anonyme")];
+    QUESTIONS.forEach(function (q, i) { var l = lignes(i); if (l.length) out.push("#" + (i + 1) + " | " + l.join(" ; ")); });
+    return out.join("\n");
+  }
+  function majEnvoi() {
+    etat.prenom = $("prenom").value; garder();
+    var m = message();
+    $("apercu").value = m;
+    $("whatsapp").href = "https://wa.me/?text=" + encodeURIComponent(m);
+  }
+  function finir() {
+    var n = QUESTIONS.filter(function (q, i) { return lignes(i).length; }).length;
+    $("bilan-texte").textContent = n === 0
+      ? "Tu n'as rien répondu pour l'instant. Reviens en arrière pour remplir au moins une question."
+      : "Tu as répondu à " + n + " question" + (n > 1 ? "s" : "") + ". Mets ton prénom pour que Samer sache qui a répondu, et envoie.";
+    $("prenom").value = etat.prenom || "";
+    majEnvoi();
+    $("whatsapp").hidden = $("copier").hidden = n === 0;
+    montrer("fin");
+  }
+
+  $("go").addEventListener("click", function () { etat.i = 0; afficherQuestion(); });
+  $("suivant").addEventListener("click", avancer);
+  $("passer").addEventListener("click", function () { champs.forEach(function (c) { c.value = ""; }); avancer(); });
+  $("retour").addEventListener("click", reculer);
+  champs.forEach(function (c, k) {
+    c.addEventListener("input", noter);
+    c.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      if (k < 2) champs[k + 1].focus(); else avancer();
+    });
+  });
+  $("hard-oui").addEventListener("click", function () { etat.hard = true; etat.i = BASE; garder(); afficherQuestion(); });
+  $("hard-non").addEventListener("click", function () { etat.hard = false; garder(); finir(); });
+  $("prenom").addEventListener("input", majEnvoi);
+  $("whatsapp").addEventListener("click", function () {
+    majEnvoi();
+    $("etat").textContent = "WhatsApp s'ouvre. Si rien ne se passe, utilise « Copier mes réponses ».";
+  });
+  $("copier").addEventListener("click", function () {
+    var m = message();
+    function ok() { $("etat").textContent = "Copié ! Colle-le dans un message à Samer."; }
+    function main() { var t = $("apercu"); t.hidden = false; t.focus(); t.select(); $("etat").textContent = "Copie le texte ci-dessous et envoie-le à Samer."; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(m).then(ok, main); else main();
+  });
+  $("revoir").addEventListener("click", function () { etat.i = 0; afficherQuestion(); });
+</script>
+</body>
+</html>
